@@ -32,7 +32,7 @@ float moisture_percentage;
 int sensor_analog;
 int systemStarted = millis();
 float sensorErrorThresh = 90.0; // Moisture reading more than this is sensor failure
-int wateringTime = 16; //24 Hrs clock time // Time after to start watering plants
+int wateringTime = 8; //24 Hrs clock time // Time after to start watering plants
 int chkWPTimer = 5*30000UL; //Watering plants timer 
 int NRDelay = 15*60000UL; //Watering plants timer 
 int AHDelay = 1*60*60000UL;
@@ -132,6 +132,12 @@ void setup() {
   timer.setInterval(NRDelay, reportSoilMois);
 
   timeClient.begin();
+}
+
+BLYNK_WRITE(V2)
+{
+  if(param.asInt() == 1){digitalWrite(Relay, HIGH);}
+  else if (param.asInt() == 0){digitalWrite(Relay, LOW);}
 }
 
 void loop() {
