@@ -136,8 +136,8 @@ void setup() {
 
 BLYNK_WRITE(V2)
 {
-  if(param.asInt() == 1){digitalWrite(Relay, HIGH);}
-  else if (param.asInt() == 0){digitalWrite(Relay, LOW);}
+  if(param.asInt() == 1){digitalWrite(Relay, HIGH); led.off();}
+  else if (param.asInt() == 0){digitalWrite(Relay, LOW); led.on();}
 }
 
 void loop() {
