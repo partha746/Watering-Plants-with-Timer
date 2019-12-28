@@ -38,8 +38,8 @@ int wateringTime = 8; //24 Hrs clock time // Time after to start watering plants
 int chkWPTimer = 5*30000UL; //Watering plants timer 
 int NRDelay = 15*60000UL; //Watering plants timer 
 int AHDelay = 1*60*60000UL;
-int LWL = 45; //Lower water level
-int HWL = 12; //Lower water level
+float LWL = 45.0; //Lower water level
+float HWL = 12.0; //Lower water level
 
 void OTA(){
   ArduinoOTA.setHostname("Plantwatering_balc_out");
@@ -84,7 +84,8 @@ float sonarDist(){
   digitalWrite(TRIGGERPIN, LOW);
   duration = pulseIn(ECHOPIN, HIGH);
   distance = (duration/2) / 29.1;
-  float WL = (((LWL - HWL)-(HWL - distance)) / (LWL - HWL)) * 100;
+
+  float WL = ((LWL - distance) / (LWL - HWL)) * 100;
   
   return WL;
 }
@@ -185,6 +186,13 @@ BLYNK_WRITE(V2)
 BLYNK_WRITE(V5)
 {
   if(param.asInt() == 1){ESP.restart();}
+}
+
+BLYNK_WRITE(V6)
+{
+  if(param.asInt() == 1){
+    Blynk.virtualWrite(V3, sonarDist());
+  }
 }
 
 void loop() {
