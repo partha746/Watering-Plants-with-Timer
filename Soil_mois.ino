@@ -96,7 +96,7 @@ void blynkConnect()
 }
 
 void reportSoilMois(){
-  if (sonarDist() <= LWL){
+  if (sonarDist() >= 5.0){
     timeClient.update();
     if (timeClient.getHours() == wateringTime){
       Serial.println("watering Plants");
