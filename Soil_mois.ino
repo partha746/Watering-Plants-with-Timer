@@ -33,13 +33,12 @@ String url;
 float moisture_percentage;
 int sensor_analog;
 int systemStarted = millis();
-float sensorErrorThresh = 90.0; // Moisture reading more than this is sensor failure
-int wateringTime = 8; //24 Hrs clock time // Time after to start watering plants
-int chkWPTimer = 5*30000UL; //Watering plants timer 
-int NRDelay = 15*60000UL; //Watering plants timer 
-int AHDelay = 1*60*60000UL;
+int wateringTime = 9; //24 Hrs clock time // Time after, to start watering plants
+int chkWPTimer = 2*30000UL; //Watering plants timer 
+int NRDelay = 15*60000UL; //Delay between every read check
+int AHDelay = 1*60*60000UL; //Delay once watered
 float LWL = 45.0; //Lower water level
-float HWL = 12.0; //Lower water level
+float HWL = 12.0; //High water level
 
 void OTA(){
   ArduinoOTA.setHostname("Plantwatering_balc_out");
@@ -90,17 +89,24 @@ float sonarDist(){
   return WL;
 }
 
-void blynkConnect()
-{
+void blynkConnect(){
   Blynk.begin(auth, SSID1, WifiPass);
 }
 
-void reportSoilMois(){
+void reportSoilMoisture(){
+  sensor_analog = analogRead(SMSensor);
+  moisture_percentage = ( 100 - ( (sensor_analog/1023.00) * 100 ) );
+  blynkConnect();
+  Blynk.virtualWrite(V1, moisture_percentage);
+}
+
+void waterPlants(){
   if (sonarDist() >= 5.0){
     timeClient.update();
     if (timeClient.getHours() == wateringTime){
       Serial.println("watering Plants");
       digitalWrite (Relay, HIGH);
+      reportSoilMoisture;
       led.on();
       timeClient.update();
       blynkConnect();
@@ -118,16 +124,12 @@ void reportSoilMois(){
       delay(AHDelay);
     }
   }
-  else
-  {
+  else{
     blynkConnect();
     Blynk.notify("Low water tank level @ " + timeClient.getFormattedTime() + "!!!!!");    
   }
   
-  sensor_analog = analogRead(SMSensor);
-  moisture_percentage = ( 100 - ( (sensor_analog/1023.00) * 100 ) );
-  blynkConnect();
-  Blynk.virtualWrite(V1, moisture_percentage);
+  reportSoilMoisture;
   Blynk.virtualWrite(V3, sonarDist());
 }
 
@@ -170,29 +172,30 @@ void setup() {
   blynkConnect();
   led.off();
 
-  timer.setInterval(NRDelay, reportSoilMois);
+  timer.setInterval(NRDelay, waterPlants);
   timer.setInterval(NRDelay, reportwaterLevel);
   timer.setInterval(1000, reporthwTime);
 
   timeClient.begin();
 }
 
-BLYNK_WRITE(V2)
-{
+BLYNK_WRITE(V2){
   if(param.asInt() == 1){digitalWrite(Relay, HIGH); led.on(); Blynk.virtualWrite(V3, sonarDist());}
   else if (param.asInt() == 0){digitalWrite(Relay, LOW); led.off(); Blynk.virtualWrite(V3, sonarDist());}
 }
 
-BLYNK_WRITE(V5)
-{
+BLYNK_WRITE(V5){
   if(param.asInt() == 1){ESP.restart();}
 }
 
-BLYNK_WRITE(V6)
-{
+BLYNK_WRITE(V6){
   if(param.asInt() == 1){
     Blynk.virtualWrite(V3, sonarDist());
   }
+}
+
+BLYNK_WRITE(V7){
+  chkWPTimer = param.asInt() * 60000UL;
 }
 
 void loop() {
