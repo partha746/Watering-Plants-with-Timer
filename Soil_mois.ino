@@ -27,6 +27,7 @@ int AHDelay = 1*60*60000UL; //Delay once watered
 float LWL = 45.0; //Lower water level
 float HWL = 12.0; //High water level
 const long utcOffsetInSeconds = 19800;
+bool wateredFlag = false;
 
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
@@ -92,7 +93,7 @@ void reportSoilMoisture(){
 void waterPlants(){
   if (sonarDist() >= 5.0){
     timeClient.update();
-    if (timeClient.getHours() == wateringTime){
+    if (timeClient.getHours() == wateringTime && !wateredFlag){
       timeClient.update();
       digitalWrite (Relay, HIGH);
       reportSoilMoisture();
@@ -111,7 +112,13 @@ void waterPlants(){
       Blynk.virtualWrite(V2, LOW);
       Blynk.notify("Stopping Watering Plants @ " + timeClient.getFormattedTime() + "!!!!!");
 
-      delay(AHDelay);
+      wateredFlag = true;
+    }
+    else if(timeClient.getHours() == wateringTime && wateredFlag){
+      wateredFlag = true;
+    }
+    else{
+      wateredFlag = false;
     }
   }
   else{
