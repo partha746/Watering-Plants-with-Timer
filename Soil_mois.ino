@@ -189,6 +189,11 @@ BLYNK_WRITE(V2){
   }
 }
 
+BLYNK_CONNECTED(){
+  Blynk.syncVirtual(V7);
+  Blynk.syncVirtual(V8);
+}
+
 BLYNK_WRITE(V5){
   if(param.asInt() == 1){ESP.restart();}
 }
