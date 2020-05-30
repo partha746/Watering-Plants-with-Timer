@@ -166,6 +166,7 @@ void setup() {
 
   OTA();
 
+  Blynk.syncAll();
   blynkConnect();
   led.off();
 
