@@ -75,6 +75,14 @@ float sonarDist(){
   duration = pulseIn(ECHOPIN, HIGH);
   distance = (duration/2) / 29.1;
   float WL = ((LWL - distance) / (LWL - HWL)) * 100;
+
+  if (WL < 0){
+    WL = 0;
+  }
+
+  if (WL > 100){
+    WL = 100;
+  }
   
   return WL;
 }
@@ -191,8 +199,14 @@ BLYNK_WRITE(V2){
 }
 
 BLYNK_CONNECTED(){
+//  Read how much time to water in 15sec
   Blynk.syncVirtual(V7);
+//  Read when to water
   Blynk.syncVirtual(V8);
+//  Read High distance 
+  Blynk.syncVirtual(V1);
+//  Read low distance
+  Blynk.syncVirtual(V9);
 }
 
 BLYNK_WRITE(V5){
@@ -203,6 +217,13 @@ BLYNK_WRITE(V6){
   if(param.asInt() == 1){
     Blynk.virtualWrite(V3, sonarDist());
   }
+}
+
+BLYNK_WRITE(V1){
+  LWL = param.asFloat();
+}
+BLYNK_WRITE(V9){
+  HWL = param.asFloat();
 }
 
 BLYNK_WRITE(V7){
